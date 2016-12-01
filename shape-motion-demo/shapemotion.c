@@ -17,7 +17,7 @@
 #define GREEN_LED BIT6
 
 
-AbRect rect10 = {abRectGetBounds, abRectCheck, {10,10}}; /**< 10x10 rectangle */
+AbRect rect10 = {abRectGetBounds, abRectCheck, {10,2}}; /**< 10x10 rectangle */
 AbRArrow rightArrow = {abRArrowGetBounds, abRArrowCheck, 30};
 
 AbRectOutline fieldOutline = {	/* playing field */
@@ -171,20 +171,23 @@ void main()
   configureClocks();
   lcd_init();
   shapeInit();
-  p2sw_init(1);
+  p2sw_init(15);
+  or_sr(0x8);			/* GIE (enable interrupts) */
 
   shapeInit();
 
   layerInit(&layer0);
   layerDraw(&layer0);
 
+  
 
   layerGetBounds(&fieldLayer, &fieldFence);
 
 
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);	              /**< GIE (enable interrupts) */
-
+  
+  drawString5x7(1,1, "Score:", COLOR_GREEN, COLOR_BLUE);
 
   for(;;) { 
     while (!redrawScreen) { /**< Pause CPU if screen doesn't need updating */
@@ -194,6 +197,8 @@ void main()
     P1OUT |= GREEN_LED;       /**< Green led on when CPU on */
     redrawScreen = 0;
     movLayerDraw(&ml0, &layer0);
+
+    
   }
 }
 
@@ -208,6 +213,6 @@ void wdt_c_handler()
     if (p2sw_read())
       redrawScreen = 1;
     count = 0;
-  }
+  } 
   P1OUT &= ~GREEN_LED;		    /**< Green LED off when cpu off */
 }
