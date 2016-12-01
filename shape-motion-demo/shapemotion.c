@@ -84,7 +84,7 @@ typedef struct MovLayer_s {
 /* initial value of {0,0} will be overwritten */
 MovLayer ml3 = { &layer3, {1,1}, 0 }; /**< not all layers move */
 MovLayer ml1 = { &layer1, {1,0}, &ml3 };
-MovLayer ml0 = { &layer0, {1,0}, &ml1 }; 
+MovLayer ml0 = { &layer0, {-1,0}, &ml1 }; 
 
 
 volatile int p1Score = 0;
@@ -150,17 +150,17 @@ void mlBounce(MovLayer *ml, Region *botPaddle, Region *topPaddle)
     vec2Add(&newPos, &ml->layer->posNext, &ml->velocity);
     abShapeGetBounds(ml->layer->abShape, &newPos, &shapeBoundary);
     
-    if (((shapeBoundary.topLeft.axes[1] <= topPaddle->botRight.axes[0]) &&
-      (shapeBoundary.topLeft.axes[0] <= botPaddle->botRight.axes[1]) &&
-      (shapeBoundary.topLeft.axes[1] <= botPaddle->botRight.axes[1]))  ||
+    if (((shapeBoundary.topLeft.axes[1] >= topPaddle->botRight.axes[1]) &&
+      (shapeBoundary.topLeft.axes[0] <= topPaddle->botRight.axes[0]) &&
+      (shapeBoundary.botRight.axes[1] <= topPaddle->topLeft.axes[1])) 
+      ||
+      ((shapeBoundary.topLeft.axes[1] <= botPaddle->botRight.axes[1]) &&
+      (shapeBoundary.botRight.axes[0] >= botPaddle->topLeft.axes[0]) &&
+      (shapeBoundary.botRight.axes[1] >= botPaddle->topLeft.axes[1]))) {
 
-      ((shapeBoundary.botRight.axes[1] <= botPaddle->topLeft.axes[0]) &&
-      (shapeBoundary.botRight.axes[0] <= botPaddle->topLeft.axes[1]) &&
-      (shapeBoundary.botRight.axes[1] <= botPaddle->topLeft.axes[1]))) {
-      int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
-      newPos.axes[axis] += (2*velocity);
+        int velocity = ml->velocity.axes[axis] = -ml->velocity.axes[axis];
+        newPos.axes[axis] += (2*velocity);
     
-      
     } /**< for axis */
     ml->layer->posNext = newPos;
   } /**< for ml */
@@ -240,18 +240,18 @@ void main()
   configureClocks();
   lcd_init();
   shapeInit();
-  p2sw_init(15);
-  or_sr(0x8);			/* GIE (enable interrupts) */
+
 
   shapeInit();
 
   layerInit(&layer0);
   layerDraw(&layer0);
-
   
 
   layerGetBounds(&fieldLayer, &fieldFence);
 
+  p2sw_init(15);
+  or_sr(0x8);
 
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);	              /**< GIE (enable interrupts) */
@@ -282,19 +282,19 @@ void main()
     u_int switches = p2sw_read(), i;
     char str[5];
     for (i = 0; i < 4; i++)
-      str[i] = (switches & (1<<i)) ? '-' : '0'+i;
+      str[i] = (switches & (1<<i)) ? '0' : '1';
     str[4] = 0;
-    if (str[0]) {
-      MovLayer ml1 = { &layer1, {1,0}, &ml3 };
+    if (str[0] == 1) {
+      p2Score +=3;
     }
-    if (str[1]) {
-      MovLayer ml1 = { &layer1, {0,1}, &ml3 };
+    if (str[1] == 1) {
+      p2Score +=3;
     }
     if (!str[2]) {
-      movLayerDraw(&ml0, &layer0);
+      
     }
     if (!str[3]) {
-      movLayerDraw(&ml0, &layer0);
+      
     }
 
   }

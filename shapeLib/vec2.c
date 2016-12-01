@@ -1,6 +1,6 @@
 #include "shape.h"
 
-void
+/*void
 vec2Max(Vec2 *vecMax, const Vec2 *v1, const Vec2 *v2)
 {
   u_char axis;
@@ -9,7 +9,7 @@ vec2Max(Vec2 *vecMax, const Vec2 *v1, const Vec2 *v2)
     vecMax->axes[axis] = val1 > val2 ? val1 : val2;
   }
 }
-
+*/
 void
 vec2Min(Vec2 *vecMin, const Vec2 *v1, const Vec2 *v2)
 {
